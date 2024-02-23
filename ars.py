@@ -50,6 +50,8 @@ def generate_look_alike_audiences(uploaded_file, k):
             stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
             csv_file = StringIO(stringio.read())
             pandas_df = pd.read_csv(csv_file, header=0)
+            with st.write("Uploaded Data"):
+                    st.write(pandas_df)
             spark = SparkSession.builder.appName("example").getOrCreate()
             input_df = spark.createDataFrame(pandas_df)
     else:
