@@ -2,7 +2,7 @@
 
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.vectorstores import Chroma
-from pyspark.sql import functions as F
+from pyspark.sql import functions as F, SparkSession
 from src.utils.config import config
 # Read the dataset
 
@@ -45,6 +45,20 @@ def get_retrieved_df(vec_df, retriever):
     converted_rows = [dict(pair.split(": ") for pair in row.split("; ")) for row in relevant_rows]
     return spark.createDataFrame(converted_rows).distinct()
 
+def get_ars_retrieved_df(retriever, val_df, spark):
+    input_rows = val_df.rdd.map(lambda x: x.row_as_text).collect()
+    relevant_rows = []
+
+    step = 5
+    for i in range(0, len(input_rows)):
+        for relevant_row in retriever.get_relevant_documents("\n".join(input_rows[i])):
+            relevant_rows.append(
+                relevant_row.page_content + f"; target: {relevant_row.metadata['target']}")
+
+    converted_rows = [dict(pair.split(": ") for pair in row.split("; ")) for row in relevant_rows]
+    return spark.createDataFrame(converted_rows).distinct()#.join(input_df.select("ID", "Segmentation"), how="left", on=["ID"])
+
+
 from collections import Counter
 
 def print_unique_values_and_counts(input_list):
@@ -53,3 +67,9 @@ def print_unique_values_and_counts(input_list):
     for value, count in counter.items():
         print(f"{value}: {count} times")
 
+
+def get_ars_vdb():
+    db_dir = "/Users/pshah1/ps/projects/look_alike_modelling/src/resources/ars_embeddings/embeddings_03"
+    vdb = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings,
+                 collection_metadata={"hnsw:space": "cosine"})
+    return vdb
