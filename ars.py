@@ -11,7 +11,7 @@ connection = sqlite3.connect('cache.db', timeout=100)
 import os
 import streamlit as st
 from langchain.vectorstores import Chroma
-from src.utils.functions import get_row_as_text, hf_embeddings, get_ars_vdb, get_ars_retrieved_df
+from src.utils.functions import get_row_as_text, hf_embeddings, get_ars_vdb, get_ars_retrieved_df, spark
 from src.utils.config import config
 from PIL import Image  # Import the Image class from the PIL module
 
@@ -30,7 +30,7 @@ $\textsf{
 '''
 st.markdown(title)
 
-rows_to_convert = "infogroup_id,mapped_contact_id_cont,job_titles_cont,gender_cont,state_pl,city_pl".split(",")
+rows_to_convert = 'mapped_contact_id_cont,gender_cont,management_level_cont,job_titles_cont,primary_cont,place_type_pl,state_pl,city_pl,contacts_count_pl,location_employee_count_pl,primary_sic_code_id_pl,location_sales_volume_pl,primary_naics_code_id_pl,b_abinumber,e_executivesourcecode,b_fulfillmentflag,b_countrycode,bus_abinumber_b2c,bus_contactid_b2c,cons_age_b2c,cons_maritalstatus_b2c'.split(",")
 
 if 'generated_df' not in st.session_state:
     st.session_state.generated_df = None
@@ -42,8 +42,8 @@ if 'vdb' not in st.session_state:
     # If not defined, define it
     st.session_state.vdb = get_ars_vdb()
 
-if "spark" not in st.session_state:
-    st.session_state.spark = SparkSession.builder.appName("customer_look_alike_modelling").getOrCreate()
+# if "spark" not in st.session_state:
+#     st.session_state.spark = SparkSession.builder.appName("customer_look_alike_modelling").getOrCreate()
 
 
 def generate_look_alike_audiences(uploaded_file, k):

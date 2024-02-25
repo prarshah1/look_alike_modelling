@@ -14,6 +14,10 @@ hf_embeddings = HuggingFaceEmbeddings(
     encode_kwargs=config["embedding_model_encode_kwargs"]
 )
 
+spark = SparkSession.builder.appName("customer_look_alike_modelling").getOrCreate()
+data_path = "/Users/pshah1/Downloads/look_alike/aes_data"
+input_df = spark.read.option("header", "true").parquet(data_path).filter(F.col("job_titles_cont").isNotNull())
+
 def get_embedding_model():
     return hf_embeddings
 
@@ -39,8 +43,9 @@ def get_retrieved_df(vec_df, retriever):
     input_rows = vec_df.rdd.map(lambda x: x.row_as_text).collect()
     relevant_rows = set()
     for i in range(0, len(input_rows), 500):
-        for relevant_row in retriever.get_relevant_documents("\n".join(input_rows[i:(i+500)])):
-            relevant_rows.add(relevant_row.page_content)
+        for input_row in input_rows:
+            for relevant_row in retriever.get_relevant_documents(input_row):
+                relevant_rows.add(relevant_row.page_content)
     relevant_rows = list(relevant_rows)
     converted_rows = [dict(pair.split(": ") for pair in row.split("; ")) for row in relevant_rows]
     return spark.createDataFrame(converted_rows).distinct()
@@ -49,14 +54,18 @@ def get_ars_retrieved_df(retriever, val_df, spark):
     input_rows = val_df.rdd.map(lambda x: x.row_as_text).collect()
     relevant_rows = []
 
-    step = 5
     for i in range(0, len(input_rows)):
-        for relevant_row in retriever.get_relevant_documents("\n".join(input_rows[i])):
+        print(input_rows[i])
+        for relevant_row in retriever.get_relevant_documents(input_rows[i]):
+            print(relevant_row.metadata)
             relevant_rows.append(
-                relevant_row.page_content + f"; target: {relevant_row.metadata['target']}")
+                relevant_row.page_content + f"; infogroup_id: {relevant_row.metadata['infogroup_id']}; mapped_contact_id_cont: {relevant_row.metadata['mapped_contact_id_cont']}")
 
     converted_rows = [dict(pair.split(": ") for pair in row.split("; ")) for row in relevant_rows]
-    return spark.createDataFrame(converted_rows).distinct()#.join(input_df.select("ID", "Segmentation"), how="left", on=["ID"])
+    generated_df = spark.createDataFrame(converted_rows).distinct()
+    generated_df.select("infogroup_id", "mapped_contact_id_cont").show()
+    # return input_df.join(generated_df, how="inner", on=["infogroup_id", "mapped_contact_id_cont"])
+    return generated_df
 
 
 from collections import Counter
@@ -69,7 +78,7 @@ def print_unique_values_and_counts(input_list):
 
 
 def get_ars_vdb():
-    db_dir = "/Users/pshah1/ps/projects/look_alike_modelling/src/resources/ars_embeddings/embeddings_05"
+    db_dir = "/Users/pshah1/ps/projects/look_alike_modelling/src/resources/ars_embeddings/embeddings_all_1"
     vdb = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings,
                  collection_metadata={"hnsw:space": "cosine"})
     return vdb
