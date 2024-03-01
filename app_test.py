@@ -113,8 +113,9 @@ def get_embeddings(master_file_name, k, uploaded_seed_dataset):
 
     test_df = get_row_as_text(input_df, rows_to_convert)
     st.write(f"Columns: {str(rows_to_convert)}, ID Column: {str(id_col)}")
+
     # st.write(f"Label Column: {str(label_col)}")
-    return get_retrieved_df(test_df, retriever)
+    return get_retrieved_df(test_df, retriever, k)
 
 
 def file_upload_form():
@@ -151,7 +152,7 @@ def select_exsisting_embeddings():
     with st.form('look_alike_data_generation_form'):
         master_file_name = st.selectbox('Choose from uploaded master files:', st.session_state.embeddings)
         uploaded_file = st.file_uploader("Upload seed dataset")
-        k = st.text_input('Number of rows required:', placeholder='Enter number of rows required', value=20)
+        k = st.text_input('Number of rows required:', placeholder='Enter number of rows required', value=10)
         submitted = st.form_submit_button('Submit', disabled=(master_file_name == ""))
         if submitted:
             if uploaded_file is not None:
