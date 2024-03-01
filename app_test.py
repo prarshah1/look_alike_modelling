@@ -26,8 +26,8 @@ with title_container:
     with col2:
         st.title("Similence")
 
-if 'current_filename' not in st.session_state:
-    st.session_state.current_filename = None
+if 'generated_df' not in st.session_state:
+    st.session_state.generated_df = None
 
 if 'embeddings' not in st.session_state:
     st.session_state.embeddings = []
@@ -38,7 +38,7 @@ if "spark" not in st.session_state:
 supported_file_formats = ["txt", "csv"]
 
 
-def create_embeddings(uploaded_file, k):
+def create_embeddings(uploaded_file):
     file_name = uploaded_file.name.split(".")[0]
     embedding_save_path = config["embedding_save_path"] + file_name
     file_extension = uploaded_file.name.split(".")[-1]
@@ -64,7 +64,8 @@ def create_embeddings(uploaded_file, k):
 
     os.makedirs(embedding_save_path, exist_ok=True)
     client = chromadb.PersistentClient(path=embedding_save_path)
-    vdb = Chroma(persist_directory=embedding_save_path, client=client, embedding_function=hf_embeddings, collection_metadata={"hnsw:space": "cosine"})
+    vdb = Chroma(persist_directory=embedding_save_path, client=client, embedding_function=hf_embeddings,
+                 collection_metadata={"hnsw:space": "cosine"})
 
     for i in range(0, len(texts_list), config["step"]):
         st.write("Creating embeddings ...")
@@ -73,30 +74,47 @@ def create_embeddings(uploaded_file, k):
         vdb.add_texts(texts, metadata)
     vdb.persist()
 
-    k = max(2000, int(vdb._collection.count() * 0.1))
-    st.write(f"K set to {k}")
-    retriever = vdb.as_retriever(search_kwargs={"k": k})
+    # k = max(2000, int(vdb._collection.count() * 0.1))
+    # st.write(f"K set to {k}")
+    # retriever = vdb.as_retriever(search_kwargs={"k": k})
     st.write(f"\n\nNumber of embeddings in chromadb: {str(vdb._collection.count())}")
     st.write(f"\n\nDataframe Count: {str(input_df.count())}")
-    st.session_state.embeddings.append(file_name)
+    return file_name
 
-    st.write("embeddings:")
-    st.write(str(st.session_state.embeddings))
-    return retriever, file_name
 
 def get_embeddings(master_file_name, k, uploaded_seed_dataset):
+    retriever = None
     if master_file_name in st.session_state.embeddings:
         embedding_save_path = config["embedding_save_path"] + master_file_name
         client = chromadb.PersistentClient(path=embedding_save_path)
-        vdb = Chroma(persist_directory=embedding_save_path, client=client, embedding_function=hf_embeddings, collection_metadata={"hnsw:space": "cosine"})
-        k = max(k, int(vdb._collection.count() * 0.1))
+        vdb = Chroma(persist_directory=embedding_save_path, client=client, embedding_function=hf_embeddings,
+                     collection_metadata={"hnsw:space": "cosine"})
+        # k = max(k, int(vdb._collection.count() * 0.1))
         st.write(f"Setting k to {k}")
         retriever = vdb.as_retriever(search_kwargs={"k": k})
     else:
         st.exception("Embeddings not present at path!")
 
-    generated_df =
+    file_extension = uploaded_seed_dataset.name.split(".")[-1]
+    if file_extension in supported_file_formats:
+        stringio = StringIO(uploaded_seed_dataset.getvalue().decode("utf-8"))
+        st.write("Reading file")
+        csv_file = StringIO(stringio.read())
+        pandas_df = pd.read_csv(csv_file, header=0)
+        input_df = st.session_state.spark.createDataFrame(pandas_df)
+    else:
+        raise Exception(f"File format {uploaded_seed_dataset.name.split('.')[-1]} not supported")
 
+    id_col = input_df.columns[0]
+    # label_col = input_df.columns[-1]
+    rows_to_convert = input_df.columns
+    # rows_to_convert.remove(label_col)
+    rows_to_convert.remove(id_col)
+
+    test_df = get_row_as_text(input_df, rows_to_convert)
+    st.write(f"Columns: {str(rows_to_convert)}, ID Column: {str(id_col)}")
+    # st.write(f"Label Column: {str(label_col)}")
+    return get_retrieved_df(test_df, retriever)
 
 
 def file_upload_form():
@@ -109,7 +127,11 @@ def file_upload_form():
                 if uploaded_file.name.split(".")[-1] in supported_file_formats:
                     try:
                         with st.spinner("Uploading file and generating embeddings..."):
-                            create_embeddings(uploaded_file, 0)
+                            file_name = create_embeddings(uploaded_file)
+                        st.session_state.embeddings.append(file_name)
+                        st.write("Embeddings:")
+                        st.write(str(st.session_state.embeddings))
+
                     except AttributeError:
                         # Handling the AttributeError
                         st.write("Please submit the uploaded file.")
@@ -125,6 +147,7 @@ def file_upload_form():
 
 
 def select_exsisting_embeddings():
+    succeeded = False
     with st.form('look_alike_data_generation_form'):
         master_file_name = st.selectbox('Choose from uploaded master files:', st.session_state.embeddings)
         uploaded_file = st.file_uploader("Upload seed dataset")
@@ -135,9 +158,9 @@ def select_exsisting_embeddings():
                 if uploaded_file.name.split(".")[-1] in supported_file_formats:
                     try:
                         with st.spinner("Uploading file and inferencing ..."):
-                            file_name, retriever = get_or_create_embeddings(uploaded_file, k)
+                            st.session_state.generated_df = get_embeddings(master_file_name, int(k), uploaded_file).toPandas()
+                            return True
 
-                            get_retrieved_df()
                     except AttributeError:
                         # Handling the AttributeError
                         st.write("Please submit the uploaded file.")
@@ -150,11 +173,25 @@ def select_exsisting_embeddings():
                     st.write(f"Supported file types are {', '.join(supported_file_formats)}")
             else:
                 st.write("Please select a file to upload first!")
+    return succeeded
 
 
 # Display the selected tab's form
-upload_tab, query_tab = st.tabs(['Upload file', 'Generate look-alike audiences'])
-with upload_tab:
+radio_options = ['Upload file', 'Generate look-alike audiences']
+radio_option = st.radio("", radio_options)
+succeeded = False
+if radio_option==radio_options[0]:
     file_upload_form()
-with query_tab:
-    select_exsisting_embeddings()
+if radio_option==radio_options[1]:
+    succeeded = select_exsisting_embeddings()
+
+if succeeded:
+    st.write(st.session_state.generated_df)
+    st.download_button(
+        "Press to Download",
+        st.session_state.generated_df.to_csv(index=False),
+        "output.csv",
+        "text/csv",
+        key='download-csv'
+    )
+
