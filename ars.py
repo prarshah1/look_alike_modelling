@@ -1,3 +1,4 @@
+import chromadb
 import pandas as pd
 import sqlite3
 from io import StringIO
@@ -11,11 +12,10 @@ connection = sqlite3.connect('cache.db', timeout=100)
 import os
 import streamlit as st
 from langchain.vectorstores import Chroma
-from src.utils.functions import get_row_as_text, hf_embeddings, get_ars_vdb, get_ars_retrieved_df, spark
+from src.utils.functions import get_row_as_text, hf_embeddings, get_ars_retrieved_df, spark
 from src.utils.config import config
 from PIL import Image  # Import the Image class from the PIL module
 
-uploaded = False
 st.set_page_config(page_title='Audience recommendation System')
 title_container = st.container()
 col1, mid, col2 = st.columns([0.4, 0.1, 0.5])
@@ -40,7 +40,12 @@ if 'supported_file_formats' not in st.session_state:
 
 if 'vdb' not in st.session_state:
     # If not defined, define it
-    st.session_state.vdb = get_ars_vdb()
+    db_dir = "/Users/pshah1/ps/projects/look_alike_modelling/src/resources/ars_embeddings/embeddings_all_4"
+    client = chromadb.PersistentClient(path=db_dir)
+    vdb = Chroma(client=client, embedding_function=hf_embeddings,
+                 collection_metadata={"hnsw:space": "cosine"})
+    st.session_state.vdb = vdb
+    st.write(f"Original dataset size: {vdb._collection.count()}")
 
 # if "spark" not in st.session_state:
 #     st.session_state.spark = SparkSession.builder.appName("customer_look_alike_modelling").getOrCreate()
@@ -78,7 +83,6 @@ def ars_generate_form():
             if uploaded_file is not None:
                 if uploaded_file.name.split(".")[-1] in st.session_state.supported_file_formats:
                     try:
-                        st.write(f"Original dataset size: {st.session_state.vdb._collection.count()}")
                         with st.spinner('Generating...'):
                             generated_df = generate_look_alike_audiences(uploaded_file, k)
                             succeeded = True

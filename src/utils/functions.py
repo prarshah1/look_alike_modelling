@@ -75,10 +75,3 @@ def print_unique_values_and_counts(input_list):
 
     for value, count in counter.items():
         print(f"{value}: {count} times")
-
-
-def get_ars_vdb():
-    db_dir = "/Users/pshah1/ps/projects/look_alike_modelling/src/resources/ars_embeddings/embeddings_all_1"
-    vdb = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings,
-                 collection_metadata={"hnsw:space": "cosine"})
-    return vdb
