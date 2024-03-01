@@ -17,8 +17,8 @@ hf_embeddings = HuggingFaceEmbeddings(
 cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
 
 spark = SparkSession.builder.appName("customer_look_alike_modelling").getOrCreate()
-data_path = "/Users/pshah1/Downloads/look_alike/aes_data"
-input_df = spark.read.option("header", "true").parquet(data_path).filter(F.col("job_titles_cont").isNotNull())
+# data_path = "/Users/pshah1/Downloads/look_alike/aes_data"
+# input_df = spark.read.option("header", "true").parquet(data_path).filter(F.col("job_titles_cont").isNotNull())
 
 
 def get_embedding_model():
