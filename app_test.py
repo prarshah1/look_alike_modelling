@@ -1,4 +1,3 @@
-import chromadb
 import pandas as pd
 import sqlite3
 from io import StringIO
@@ -15,6 +14,7 @@ from langchain.vectorstores import Chroma
 from src.utils.functions import get_row_as_text, hf_embeddings, get_retrieved_df, spark
 from src.utils.config import config
 from PIL import Image  # Import the Image class from the PIL module
+import chromadb
 
 st.set_page_config(page_title='Audience recommendation System')
 title_container = st.container()
