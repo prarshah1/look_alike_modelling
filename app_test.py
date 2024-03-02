@@ -179,7 +179,7 @@ def select_exsisting_embeddings():
 
 # Display the selected tab's form
 radio_options = ['Upload file', 'Generate look-alike audiences']
-radio_option = st.radio("", radio_options)
+radio_option = st.radio("Select action:", radio_options)
 succeeded = False
 if radio_option==radio_options[0]:
     file_upload_form()
