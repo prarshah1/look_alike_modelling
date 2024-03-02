@@ -133,9 +133,9 @@ def file_upload_form():
                         st.write("Embeddings:")
                         st.write(str(st.session_state.embeddings))
 
-                    except AttributeError:
+                    # except AttributeError:
                         # Handling the AttributeError
-                        st.write("Please submit the uploaded file.")
+                        # st.write("Please submit the uploaded file.")
                         # You can choose to perform alternative actions here if needed
                     except Exception as e:
                         # Handling any other exceptions
