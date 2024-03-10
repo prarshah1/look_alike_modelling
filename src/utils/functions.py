@@ -93,3 +93,4 @@ def print_unique_values_and_counts(input_list):
 
     for value, count in counter.items():
         print(f"{value}: {count} times")
+

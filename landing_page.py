@@ -1,4 +1,10 @@
 import streamlit as st
+from streamlit import switch_page
+import os
+import sys
+
+os.environ['PYSPARK_PYTHON'] = sys.executable
+os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
 
 # Create a dictionary to store image data 
 images = {
@@ -6,32 +12,32 @@ images = {
         "path": "src/resources/ui_components/customer_acquisition.png",
         "title": "Customer Acquisition",
         "description": "Identify customers who might avail our cross selling offers in Theatre",
-        "url": "http://localhost:8503/"
+        "page_name": "pages/similance_insurance.py"
     },
     "Image 2": {
         "path": "src/resources/ui_components/shopping.png",
         "title": "CPG Retailers Campaign effectiveness",
         "description": "To make our Marketing Campaign more effective ",
-        "url": "http://localhost:8503/"
+        "page_name": "similance_insurance"
     },
     "Image 3": {
         "path": "src/resources/ui_components/credit_cards.png",
         "title": "Credit Card Renewals",
         "description": "To retain credit card customers which might potentially churn away",
-        "url": "http://localhost:8503/"
+        "page_name": "similance_insurance"
     },
     "Image 4": {
         "path": "src/resources/ui_components/insurance.png",
         "title": "Insurance budgeting",
         "description": "To budget for Insurance claims or Premiums",
-        "url": "http://localhost:8503/"
+        "page_name": "similance_insurance"
     }
 }
 
 # Center align the title
 st.markdown("<h1 style='text-align: center;'>Demo Stories</h1>", unsafe_allow_html=True)
 
-# Function to display images with detailed descriptions on separate pages
+# Function to display images with detailed descriptions on separate page
 def display_image_details(image_name, chosen_tab):
     selected_image_data = images[image_name]
 
@@ -53,9 +59,8 @@ with center_container:
             st.image(images[image_name]["path"], use_column_width=True, output_format='auto')
             button_clicked = st.button(images[image_name]["title"])
             if button_clicked:
-                url = images[image_name]["url"]
-                if url:
-                    st.markdown(f'<meta http-equiv="refresh" content="0;URL={url}">', unsafe_allow_html=True)
+                page_name = images[image_name]["page_name"]
+                switch_page(page_name)
 
     # Display images and titles in the grid with boundary boxes and hover effects
     display_image_with_title(col1, "Image 1")

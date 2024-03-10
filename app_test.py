@@ -9,6 +9,10 @@ import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 connection = sqlite3.connect('cache.db', timeout=100)
 import os
+import sys
+
+os.environ['PYSPARK_PYTHON'] = sys.executable
+os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
 import streamlit as st
 from langchain.vectorstores import Chroma
 from src.utils.functions import get_row_as_text, hf_embeddings, get_retrieved_df, spark
