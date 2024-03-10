@@ -3,33 +3,33 @@ import streamlit as st
 # Create a dictionary to store image data 
 images = {
     "Image 1": {
-        "path": "healthcare.png",
-        "title": "Wellness Hub: Navigating Your Health Journey",
-        "description": "This image represents our Wellness Hub project aimed at providing guidance and resources for individuals on their health journey.",
+        "path": "src/resources/ui_components/customer_acquisition.png",
+        "title": "Customer Acquisition",
+        "description": "Identify customers who might avail our cross selling offers in Theatre",
         "url": "http://localhost:8503/"
     },
     "Image 2": {
-        "path": "shopping.png",
-        "title": "Digital Marketplace: Shopping Simplified",
-        "description": "Here's a glimpse of our Digital Marketplace project which aims to simplify the shopping experience for users.",
-        "url": "https://huggingface.co/cross-encoder"
+        "path": "src/resources/ui_components/shopping.png",
+        "title": "CPG Retailers Campaign effectiveness",
+        "description": "To make our Marketing Campaign more effective ",
+        "url": "http://localhost:8503/"
     },
     "Image 3": {
-        "path": "transportations.png",
-        "title": "Transit Tech: Transforming the Way We Move",
-        "description": "Transit Tech project is all about revolutionizing the transportation sector to make commuting easier and more efficient.",
-        "url": "https://www.freepik.com/"
+        "path": "src/resources/ui_components/credit_cards.png",
+        "title": "Credit Card Renewals",
+        "description": "To retain credit card customers which might potentially churn away",
+        "url": "http://localhost:8503/"
     },
     "Image 4": {
-        "path": "bank.png",
-        "title": "Financial Frontiers: Banking Beyond Boundaries",
-        "description": "This image showcases our initiative in exploring financial frontiers to extend banking services beyond conventional boundaries.",
-        "url": "https://example.com/"
+        "path": "src/resources/ui_components/insurance.png",
+        "title": "Insurance budgeting",
+        "description": "To budget for Insurance claims or Premiums",
+        "url": "http://localhost:8503/"
     }
 }
 
 # Center align the title
-st.markdown("<h1 style='text-align: center;'>HEADING</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>Demo Stories</h1>", unsafe_allow_html=True)
 
 # Function to display images with detailed descriptions on separate pages
 def display_image_details(image_name, chosen_tab):
