@@ -12,7 +12,7 @@ images = {
         "path": "src/resources/ui_components/customer_acquisition.png",
         "title": "Customer Acquisition",
         "description": "Identify customers who might avail our cross selling offers in Theatre",
-        "page_name": "pages/similance_insurance.py"
+        "page_name": "pages/similance_movie.py"
     },
     "Image 2": {
         "path": "src/resources/ui_components/shopping.png",

@@ -34,22 +34,14 @@ with title_container:
 
 with st.container(border=True):
     st.markdown("""  
-    ## :blue[Insurance budgeting]  
-    **Goal:** To budget for Insurance claims or Premiums 
+    ## :blue[Customer Acquisition]  
+    **Goal:** Identify customers who might avail our cross selling offers in Theatre
     
     **Story:** 
-    Here's how we can use our customer data to manage insurance claims and premiums: 
-    
-    First, we gather information about our customers who have insurance and track if they've made any claims before. We also collect details about their physical features and previous claims history. 
-    Next, we group our customers into different categories based on how much they've claimed in the past. This helps us understand which categories have claimed more. 
-    
-    Then, we look at our current customers and see which category they fit into. This helps us identify patterns and predict how much claims we might receive in a given period. 
-    With this information, we can budget for the claims we expect to receive. This ensures we have enough money set aside to cover any future claims. 
-    
-    Additionally, we can use the same approach to budget for the premiums that our customers will pay. By understanding which categories they belong to, we can estimate how much premium income we'll receive in a given time period. 
-    Overall, this method helps us manage our insurance business more effectively by predicting claims and premiums based on our customers' history and characteristics. 
+    As a bank, we possess data on card usage among our customers. Let's consider that we have 500,000 customers who utilized our card for purchasing movie tickets within the last 30 days. Furthermore, we have collected information on instances where some of these customers also made purchases for additional cinema services such as food or beverages. Additionally, as a bank, we are aware of the number of individuals who have already booked movie tickets for the upcoming week, which stands at approximately 15,000. Among these bookings, there are 1,000 cases where customers have already pre-booked additional services.  
+    To enhance customer experience and engagement, the bank aims to offer a special service to those customers who have only purchased movie tickets without any additional services. By analyzing the historical data of the 500,000 customers or potentially a larger dataset, we can identify patterns that indicate which customers are more likely to purchase cinema services based on similarities with those who have already made such purchases for the same day.
     """)
-rows_to_convert = 'age,sex,bmi,children,smoker,region'.split(",")
+rows_to_convert = 'Age,FrequentWatcher,AnnualIncomeClass,ServicesOpted,AccountSyncedToSocialMedia,BookedFoodOrNot'.split(",")
 
 if 'generated_df' not in st.session_state:
     st.session_state.generated_df = None
@@ -59,7 +51,7 @@ if 'supported_file_formats' not in st.session_state:
 
 if 'vdb' not in st.session_state:
     # If not defined, define it
-    db_dir = "src/resources/embeddings/insurance"
+    db_dir = "src/resources/embeddings/movie"
     # client = chromadb.PersistentClient(path=db_dir)
     vdb = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings,
                  collection_metadata={"hnsw:space": "cosine"})
@@ -70,7 +62,7 @@ if 'vdb' not in st.session_state:
 # if "spark" not in st.session_state:
 #     st.session_state.spark = SparkSession.builder.appName("customer_look_alike_modelling").getOrCreate()
 
-def get_insurance_retrieved_df(retriever, val_df, spark):
+def get_movie_retrieved_df(retriever, val_df, spark):
     input_rows = val_df.rdd.map(lambda x: x.row_as_text).collect()
     relevant_rows = []
 
@@ -79,7 +71,7 @@ def get_insurance_retrieved_df(retriever, val_df, spark):
         for relevant_row in retriever.get_relevant_documents(input_rows[i]):
             print(relevant_row.metadata)
             relevant_rows.append(
-                relevant_row.page_content + f"; Id: {relevant_row.metadata['Id']}; charges_bucket_label: {relevant_row.metadata['charges_bucket_label']}")
+                relevant_row.page_content + f"; Id: {relevant_row.metadata['Id']}; Target: {relevant_row.metadata['Target']}")
 
     converted_rows = [dict(pair.split(": ") for pair in row.split("; ")) for row in relevant_rows]
     generated_df = spark.createDataFrame(converted_rows).distinct()
@@ -87,55 +79,60 @@ def get_insurance_retrieved_df(retriever, val_df, spark):
     return generated_df
 
 
-def generate_look_alike_insurance(pandas_df, k):
-    st.write("""Input Data""")
-    st.write(pandas_df)
-    spark = SparkSession.builder.appName("example").getOrCreate()
-    input_df = spark.createDataFrame(pandas_df)
+def generate_look_alike_movie(uploaded_file, k):
+    if uploaded_file.name.split(".")[-1] in st.session_state.supported_file_formats:
+        with st.spinner('Uploading...'):
+            stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
+            csv_file = StringIO(stringio.read())
+            pandas_df = pd.read_csv(csv_file, header=0)[rows_to_convert]
+            st.markdown("""Uploaded Data""")
+            st.write(pandas_df)
+            spark = SparkSession.builder.appName("example").getOrCreate()
+            input_df = spark.createDataFrame(pandas_df)
+    else:
+        raise Exception("File format {uploaded_file.name.split('.')[-1]} not supported")
 
     test_df = get_row_as_text(input_df, rows_to_convert)
+
     retriever = st.session_state.vdb.as_retriever(search_kwargs={"k": int(k)})
-    generated_df = get_insurance_retrieved_df(retriever, test_df, spark)
+    generated_df = get_movie_retrieved_df(retriever, test_df, spark).drop("Target")
     generated_df.show()
     return generated_df
 
 
-def insurance_generate_form():
+def movie_generate_form():
     succeeded = False
-    st.markdown("""**Insurance Data**""")
-    insurance_data = pd.read_csv("src/resources/data/insurance.csv")
-    st.write(insurance_data)
+    st.markdown("""**Movie Data**""")
+    movie_data = pd.read_csv("src/resources/data/movie.csv")
+    st.write(movie_data)
     st.markdown("""---""")
     st.markdown("""**Input Data**""")
     with st.form('fileform'):
-        age = st.number_input('Age:', min_value=18, max_value=70, step=1)
-        sex = st.selectbox('Sex:', ['male', 'female'])
-        bmi = st.number_input('BMI:')
-        children = st.number_input('Children:')
-        smoker = st.selectbox('Smoker:', ['yes', 'no'])
-        region = st.selectbox('Region:', ["northeast", "northwest", "southeast", "southwest"])
+        uploaded_file = st.file_uploader("Upload customer data", type=st.session_state.supported_file_formats)
         k = st.number_input('Number of rows required:', placeholder='Enter number odf rows to fetch per query:',
                             value=20)
         submitted = st.form_submit_button('Generate', disabled=(k == ""))
         if submitted:
-            try:
-                with st.spinner('Generating...'):
-                    uploaded_row = {'age': str(age), 'sex': str(sex), 'bmi': str(bmi), 'children': str(children),
-                                    'smoker': str(smoker), 'region': str(region)}
-                    uploaded_df = pd.DataFrame([uploaded_row])
-                    generated_df = generate_look_alike_insurance(uploaded_df, k)
-                    st.write("Generated look-alike audiences.")
-                    st.write(generated_df)
-                st.session_state.generated_df = generated_df
-            except AttributeError as e:
-                # Handling the AttributeError
-                st.write("Please submit the uploaded file.")
-                st.write(e)
-                # You can choose to perform alternative actions here if needed
-            except Exception as e:
-                # Handling any other exceptions
-                st.write(f"An unexpected error occurred: {e}")
-                raise e
+            if uploaded_file is not None:
+                if uploaded_file.name.split(".")[-1] in st.session_state.supported_file_formats:
+                    try:
+                        with st.spinner('Generating...'):
+                            generated_df = generate_look_alike_movie(uploaded_file, k)
+                            st.write("Generated look-alike audiences.")
+                            st.write(generated_df)
+                        st.session_state.generated_df = generated_df
+                    except AttributeError as e:
+                        # Handling the AttributeError
+                        st.write("Please submit the uploaded file.")
+                        st.write(e)
+                        # You can choose to perform alternative actions here if needed
+                    except Exception as e:
+                        # Handling any other exceptions
+                        st.write(f"An unexpected error occurred: {e}")
+                        raise e
+                else:
+                    st.write(f"Supported file types are {', '.join(st.session_state.supported_file_formats)}")
+            else:
+                st.write("Please select a file to upload first!")
 
-
-insurance_generate_form()
+movie_generate_form()
