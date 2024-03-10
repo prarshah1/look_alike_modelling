@@ -42,8 +42,7 @@ if 'vdb' not in st.session_state:
     # If not defined, define it
     db_dir = "/Users/pshah1/ps/projects/look_alike_modelling/src/resources/ars_embeddings/embeddings_all_4"
     client = chromadb.PersistentClient(path=db_dir)
-    vdb = Chroma(client=client, embedding_function=hf_embeddings,
-                 collection_metadata={"hnsw:space": "cosine"})
+    vdb = Chroma(client=client, embedding_function=hf_embeddings, collection_metadata={"hnsw:space": "cosine"})
     st.session_state.vdb = vdb
     st.write(f"Original dataset size: {vdb._collection.count()}")
 
