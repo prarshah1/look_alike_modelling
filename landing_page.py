@@ -18,19 +18,19 @@ images = {
         "path": "src/resources/ui_components/shopping.png",
         "title": "CPG Retailers Campaign effectiveness",
         "description": "To make our Marketing Campaign more effective ",
-        "page_name": "similance_insurance"
+        "page_name": "pages/similance_superstore.py"
     },
     "Image 3": {
         "path": "src/resources/ui_components/credit_cards.png",
         "title": "Credit Card Renewals",
         "description": "To retain credit card customers which might potentially churn away",
-        "page_name": "similance_insurance"
+        "page_name": "pages/similance_credit.py"
     },
     "Image 4": {
         "path": "src/resources/ui_components/insurance.png",
         "title": "Insurance budgeting",
         "description": "To budget for Insurance claims or Premiums",
-        "page_name": "similance_insurance"
+        "page_name": "pages/similance_insurance.py"
     }
 }
 
