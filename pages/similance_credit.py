@@ -45,7 +45,7 @@ with st.container(border=True):
     This way, we hope to keep more customers happy and stop them from leaving us. 
     """)
 
-rows_to_convert = 'CLIENTNUM,Attrition_Flag,Customer_Age,Gender,Dependent_count,Education_Level,Marital_Status,Income_Category,Card_Category,Months_on_book,Total_Relationship_Count,Months_Inactive_12_mon,Contacts_Count_12_mon,Credit_Limit,Total_Revolving_Bal,Avg_Open_To_Buy,Total_Amt_Chng_Q4_Q1,Total_Trans_Amt,Total_Trans_Ct,Total_Ct_Chng_Q4_Q1,Avg_Utilization_Ratio'.split(",")
+rows_to_convert_credit = 'CLIENTNUM,Attrition_Flag,Customer_Age,Gender,Dependent_count,Education_Level,Marital_Status,Income_Category,Card_Category,Months_on_book,Total_Relationship_Count,Months_Inactive_12_mon,Contacts_Count_12_mon,Credit_Limit,Total_Revolving_Bal,Avg_Open_To_Buy,Total_Amt_Chng_Q4_Q1,Total_Trans_Amt,Total_Trans_Ct,Total_Ct_Chng_Q4_Q1,Avg_Utilization_Ratio'.split(",")
 
 if 'generated_df' not in st.session_state:
     st.session_state.generated_df = None
@@ -53,14 +53,14 @@ if 'generated_df' not in st.session_state:
 if 'supported_file_formats' not in st.session_state:
     st.session_state.supported_file_formats = ["txt", "json", "csv"]
 
-if 'vdb' not in st.session_state:
+if 'vdb_credit' not in st.session_state:
     # If not defined, define it
     db_dir = "src/resources/embeddings/credit"
     # client = chromadb.PersistentClient(path=db_dir)
-    vdb = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings,
+    vdb_credit = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings,
                  collection_metadata={"hnsw:space": "cosine"})
-    st.session_state.vdb = vdb
-    st.write(f"Original dataset size: {vdb._collection.count()}")
+    st.session_state.vdb_credit = vdb_credit
+    st.write(f"Original dataset size: {vdb_credit._collection.count()}")
 
 
 # if "spark" not in st.session_state:
@@ -87,7 +87,7 @@ def generate_look_alike_credit(uploaded_file, k):
         with st.spinner('Uploading...'):
             stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
             csv_file = StringIO(stringio.read())
-            pandas_df = pd.read_csv(csv_file, header=0)[rows_to_convert]
+            pandas_df = pd.read_csv(csv_file, header=0)[rows_to_convert_credit]
             st.markdown("""Uploaded Data""")
             st.write(pandas_df)
             spark = SparkSession.builder.appName("example").getOrCreate()
@@ -95,9 +95,9 @@ def generate_look_alike_credit(uploaded_file, k):
     else:
         raise Exception("File format {uploaded_file.name.split('.')[-1]} not supported")
 
-    test_df = get_row_as_text(input_df, rows_to_convert)
+    test_df = get_row_as_text(input_df, rows_to_convert_credit)
 
-    retriever = st.session_state.vdb.as_retriever(search_kwargs={"k": int(k)})
+    retriever = st.session_state.vdb_credit.as_retriever(search_kwargs={"k": int(k)})
     generated_df = get_credit_retrieved_df(retriever, test_df, spark)
     generated_df.show()
     return generated_df

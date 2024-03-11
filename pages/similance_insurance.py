@@ -49,7 +49,7 @@ with st.container(border=True):
     Additionally, we can use the same approach to budget for the premiums that our customers will pay. By understanding which categories they belong to, we can estimate how much premium income we'll receive in a given time period. 
     Overall, this method helps us manage our insurance business more effectively by predicting claims and premiums based on our customers' history and characteristics. 
     """)
-rows_to_convert = 'age,sex,bmi,children,smoker,region'.split(",")
+rows_to_convert_insurance = 'age,sex,bmi,children,smoker,region'.split(",")
 
 if 'generated_df' not in st.session_state:
     st.session_state.generated_df = None
@@ -57,14 +57,14 @@ if 'generated_df' not in st.session_state:
 if 'supported_file_formats' not in st.session_state:
     st.session_state.supported_file_formats = ["txt", "json", "csv"]
 
-if 'vdb' not in st.session_state:
+if 'vdb_insurance' not in st.session_state:
     # If not defined, define it
     db_dir = "src/resources/embeddings/insurance"
     # client = chromadb.PersistentClient(path=db_dir)
-    vdb = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings,
+    vdb_insurance = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings,
                  collection_metadata={"hnsw:space": "cosine"})
-    st.session_state.vdb = vdb
-    st.write(f"Original dataset size: {vdb._collection.count()}")
+    st.session_state.vdb_insurance = vdb_insurance
+    st.write(f"Original dataset size: {vdb_insurance._collection.count()}")
 
 
 # if "spark" not in st.session_state:
@@ -93,8 +93,8 @@ def generate_look_alike_insurance(pandas_df, k):
     spark = SparkSession.builder.appName("example").getOrCreate()
     input_df = spark.createDataFrame(pandas_df)
 
-    test_df = get_row_as_text(input_df, rows_to_convert)
-    retriever = st.session_state.vdb.as_retriever(search_kwargs={"k": int(k)})
+    test_df = get_row_as_text(input_df, rows_to_convert_insurance)
+    retriever = st.session_state.vdb_insurance.as_retriever(search_kwargs={"k": int(k)})
     generated_df = get_insurance_retrieved_df(retriever, test_df, spark)
     generated_df.show()
     return generated_df

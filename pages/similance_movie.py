@@ -41,7 +41,7 @@ with st.container(border=True):
     As a bank, we possess data on card usage among our customers. Let's consider that we have 500,000 customers who utilized our card for purchasing movie tickets within the last 30 days. Furthermore, we have collected information on instances where some of these customers also made purchases for additional cinema services such as food or beverages. Additionally, as a bank, we are aware of the number of individuals who have already booked movie tickets for the upcoming week, which stands at approximately 15,000. Among these bookings, there are 1,000 cases where customers have already pre-booked additional services.  
     To enhance customer experience and engagement, the bank aims to offer a special service to those customers who have only purchased movie tickets without any additional services. By analyzing the historical data of the 500,000 customers or potentially a larger dataset, we can identify patterns that indicate which customers are more likely to purchase cinema services based on similarities with those who have already made such purchases for the same day.
     """)
-rows_to_convert = 'Age,FrequentWatcher,AnnualIncomeClass,ServicesOpted,AccountSyncedToSocialMedia,BookedFoodOrNot'.split(",")
+rows_to_convert_movie = 'Age,FrequentWatcher,AnnualIncomeClass,ServicesOpted,AccountSyncedToSocialMedia,BookedFoodOrNot'.split(",")
 
 if 'generated_df' not in st.session_state:
     st.session_state.generated_df = None
@@ -49,14 +49,14 @@ if 'generated_df' not in st.session_state:
 if 'supported_file_formats' not in st.session_state:
     st.session_state.supported_file_formats = ["txt", "json", "csv"]
 
-if 'vdb' not in st.session_state:
+if 'vdb_movie' not in st.session_state:
     # If not defined, define it
     db_dir = "src/resources/embeddings/movie"
     # client = chromadb.PersistentClient(path=db_dir)
-    vdb = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings,
+    vdb_movie = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings,
                  collection_metadata={"hnsw:space": "cosine"})
-    st.session_state.vdb = vdb
-    st.write(f"Original dataset size: {vdb._collection.count()}")
+    st.session_state.vdb_movie = vdb_movie
+    st.write(f"Original dataset size: {vdb_movie._collection.count()}")
 
 
 # if "spark" not in st.session_state:
@@ -84,7 +84,7 @@ def generate_look_alike_movie(uploaded_file, k):
         with st.spinner('Uploading...'):
             stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
             csv_file = StringIO(stringio.read())
-            pandas_df = pd.read_csv(csv_file, header=0)[rows_to_convert]
+            pandas_df = pd.read_csv(csv_file, header=0)[rows_to_convert_movie]
             st.markdown("""Uploaded Data""")
             st.write(pandas_df)
             spark = SparkSession.builder.appName("example").getOrCreate()
@@ -92,9 +92,9 @@ def generate_look_alike_movie(uploaded_file, k):
     else:
         raise Exception("File format {uploaded_file.name.split('.')[-1]} not supported")
 
-    test_df = get_row_as_text(input_df, rows_to_convert)
+    test_df = get_row_as_text(input_df, rows_to_convert_movie)
 
-    retriever = st.session_state.vdb.as_retriever(search_kwargs={"k": int(k)})
+    retriever = st.session_state.vdb_movie.as_retriever(search_kwargs={"k": int(k)})
     generated_df = get_movie_retrieved_df(retriever, test_df, spark).drop("Target")
     generated_df.show()
     return generated_df
@@ -103,7 +103,7 @@ def generate_look_alike_movie(uploaded_file, k):
 def movie_generate_form():
     succeeded = False
     st.markdown("""**Movie Data**""")
-    movie_data = pd.read_csv("src/resources/data/movie.csv")
+    movie_data = pd.read_csv("src/resources/data/movie.csv").drop('Target', axis=1)
     st.write(movie_data)
     st.markdown("""---""")
     st.markdown("""**Input Data**""")
