@@ -34,14 +34,15 @@ with title_container:
 
 with st.container(border=True):
     st.markdown("""  
-    ## :blue[CPG Retailers Campaign effectiveness ]  
-    **Goal:** To make our Marketing Campaign more effective
+    ## :blue[Credit Card Renewals]  
+    **Goal:** To retain credit card customers which might potentially churn away 
     
     **Story:** 
-    As a CPG / Retail company we run email campaigns to promote our latest offerings. Looking back at our previous efforts, we saw that some customers bought the product after receiving our emails. Now, as we plan our next campaign, we want to be more targeted in who we reach out to. 
-    Sorting through our extensive list of customers, we want to identify patterns among those who made purchases before. We are not just looking at obvious things like age or location but can use this smart solution that can recognize similarities without explicit instructions. It scans through our data and pinpoints potential matches automatically. 
-    Once we identify these similar customers, we craft personalized emails tailored to their interests and past behaviors, hoping to entice them to buy again. It's like inviting friends to join in on something they've enjoyed before. 
-    By leveraging this approach, we aim to make our email campaign more effective, reaching those who are most likely to be interested in what we have to offer and driving sales in the process. 
+    The team at a bank is worried because many customers are quitting their credit card services. They want to figure out who might leave next so they can try to keep them happy. 
+    Here's how we can help: We have a bunch of information about our customers and their credit card use. We also know who has already left us. By looking at all this data, we can find customers who are a lot like the ones who left before. 
+    Then, we give each customer a score based on how much they're like the ones who left. The higher the score, the more likely they might leave, too. 
+    Once we know who might leave, we can reach out to them with special offers or extra help to make them happy. It's like giving them a good reason to stick with us. 
+    This way, we hope to keep more customers happy and stop them from leaving us. 
     """)
 
 rows_to_convert = 'CLIENTNUM,Attrition_Flag,Customer_Age,Gender,Dependent_count,Education_Level,Marital_Status,Income_Category,Card_Category,Months_on_book,Total_Relationship_Count,Months_Inactive_12_mon,Contacts_Count_12_mon,Credit_Limit,Total_Revolving_Bal,Avg_Open_To_Buy,Total_Amt_Chng_Q4_Q1,Total_Trans_Amt,Total_Trans_Ct,Total_Ct_Chng_Q4_Q1,Avg_Utilization_Ratio'.split(",")
@@ -54,7 +55,7 @@ if 'supported_file_formats' not in st.session_state:
 
 if 'vdb' not in st.session_state:
     # If not defined, define it
-    db_dir = "src/resources/embeddings/superstore"
+    db_dir = "src/resources/embeddings/credit"
     # client = chromadb.PersistentClient(path=db_dir)
     vdb = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings,
                  collection_metadata={"hnsw:space": "cosine"})
@@ -65,7 +66,7 @@ if 'vdb' not in st.session_state:
 # if "spark" not in st.session_state:
 #     st.session_state.spark = SparkSession.builder.appName("customer_look_alike_modelling").getOrCreate()
 
-def get_superstore_retrieved_df(retriever, val_df, spark):
+def get_credit_retrieved_df(retriever, val_df, spark):
     input_rows = val_df.rdd.map(lambda x: x.row_as_text).collect()
     relevant_rows = []
 
@@ -74,15 +75,14 @@ def get_superstore_retrieved_df(retriever, val_df, spark):
         for relevant_row in retriever.get_relevant_documents(input_rows[i]):
             print(relevant_row.metadata)
             relevant_rows.append(
-                relevant_row.page_content + f"; Id: {relevant_row.metadata['Id']}")
+                relevant_row.page_content + f"; customer_id: {relevant_row.metadata['customer_id']}")
 
     converted_rows = [dict(pair.split(": ") for pair in row.split("; ")) for row in relevant_rows]
     generated_df = spark.createDataFrame(converted_rows).distinct()
-    # return input_df.join(generated_df, how="inner", on=["infogroup_id", "mapped_contact_id_cont"])
     return generated_df
 
 
-def generate_look_alike_superstore(uploaded_file, k):
+def generate_look_alike_credit(uploaded_file, k):
     if uploaded_file.name.split(".")[-1] in st.session_state.supported_file_formats:
         with st.spinner('Uploading...'):
             stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
@@ -98,16 +98,16 @@ def generate_look_alike_superstore(uploaded_file, k):
     test_df = get_row_as_text(input_df, rows_to_convert)
 
     retriever = st.session_state.vdb.as_retriever(search_kwargs={"k": int(k)})
-    generated_df = get_superstore_retrieved_df(retriever, test_df, spark)
+    generated_df = get_credit_retrieved_df(retriever, test_df, spark)
     generated_df.show()
     return generated_df
 
 
-def superstore_generate_form():
+def credit_generate_form():
     succeeded = False
-    st.markdown("""**Superstore Data**""")
-    superstore_data = pd.read_csv("src/resources/data/superstore.csv")
-    st.write(superstore_data)
+    st.markdown("""**Credit Card Churn Data**""")
+    credit_data = pd.read_csv("src/resources/data/credit_card.csv")
+    st.write(credit_data)
     st.markdown("""---""")
     st.markdown("""**Input Data**""")
     with st.form('fileform'):
@@ -120,7 +120,7 @@ def superstore_generate_form():
                 if uploaded_file.name.split(".")[-1] in st.session_state.supported_file_formats:
                     try:
                         with st.spinner('Generating...'):
-                            generated_df = generate_look_alike_superstore(uploaded_file, k)
+                            generated_df = generate_look_alike_credit(uploaded_file, k)
                             st.write("Generated look-alike audiences.")
                             st.write(generated_df)
                         st.session_state.generated_df = generated_df
@@ -138,4 +138,4 @@ def superstore_generate_form():
             else:
                 st.write("Please select a file to upload first!")
 
-superstore_generate_form()
+credit_generate_form()
