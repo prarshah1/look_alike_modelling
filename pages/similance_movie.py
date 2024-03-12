@@ -58,7 +58,6 @@ if 'vdb_movie' not in st.session_state:
     vdb_movie = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings,
                  collection_metadata={"hnsw:space": "cosine"})
     st.session_state.vdb_movie = vdb_movie
-    st.write(f"Original dataset size: {vdb_movie._collection.count()}")
 
 
 # if "spark" not in st.session_state:
@@ -71,13 +70,17 @@ def get_movie_retrieved_df(retriever, val_df, spark):
     for i in range(0, len(input_rows)):
         target = []
         for relevant_row in retriever.get_relevant_documents(input_rows[i]):
-            target.append(relevant_row.metadata['Target'])
+            target.append(int(relevant_row.metadata['Target']))
+        print(target)
         relevant_rows.append(
             input_rows[i] + f"; Target: {max(target)}")
 
     converted_rows = [dict(pair.split(": ") for pair in row.split("; ")) for row in relevant_rows]
     generated_df = spark.createDataFrame(converted_rows).distinct()#.filter(F.col("Target") == "1")
     # return input_df.join(generated_df, how="inner", on=["infogroup_id", "mapped_contact_id_cont"])
+    generated_df.show()
+    st.write("Generated look-alike audiences.")
+    st.write(generated_df)
     return generated_df
 
 
@@ -98,9 +101,6 @@ def generate_look_alike_movie(uploaded_file, k):
 
     retriever = st.session_state.vdb_movie.as_retriever(search_kwargs={"k": int(k)})
     generated_df = get_movie_retrieved_df(retriever, test_df, spark).drop("Target")
-    generated_df.show()
-    st.write("Generated look-alike audiences.")
-    st.write(generated_df)
     return generated_df
 
 
