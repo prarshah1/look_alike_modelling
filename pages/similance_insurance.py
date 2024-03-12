@@ -102,6 +102,7 @@ def insurance_generate_form():
     st.write(insurance_data)
     st.markdown("""---""")
     st.markdown("""**Input Data**""")
+    # insert selectbox - insert data, upload input data
     with st.form('fileform'):
         age = st.number_input('Age:', min_value=18, max_value=70, step=1)
         sex = st.selectbox('Sex:', ['male', 'female'])
