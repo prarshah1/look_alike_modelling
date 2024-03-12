@@ -67,9 +67,7 @@ def get_movie_retrieved_df(retriever, val_df, spark):
     relevant_rows = []
 
     for i in range(0, len(input_rows)):
-        print(input_rows[i])
         for relevant_row in retriever.get_relevant_documents(input_rows[i]):
-            print(relevant_row.metadata)
             relevant_rows.append(
                 relevant_row.page_content + f"; Id: {relevant_row.metadata['Id']}; Target: {relevant_row.metadata['Target']}")
 

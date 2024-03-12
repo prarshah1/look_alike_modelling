@@ -74,7 +74,6 @@ def get_ars_retrieved_df(retriever, val_df, spark):
     for i in range(0, len(input_rows)):
         print(input_rows[i])
         for relevant_row in retriever.get_relevant_documents(input_rows[i]):
-            print(relevant_row.metadata)
             relevant_rows.append(
                 relevant_row.page_content + f"; infogroup_id: {relevant_row.metadata['infogroup_id']}; mapped_contact_id_cont: {relevant_row.metadata['mapped_contact_id_cont']}")
 

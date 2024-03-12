@@ -44,7 +44,7 @@ with st.container(border=True):
     By leveraging this approach, we aim to make our email campaign more effective, reaching those who are most likely to be interested in what we have to offer and driving sales in the process. 
     """)
 
-rows_to_convert_superstore = 'CLIENTNUM,Attrition_Flag,Customer_Age,Gender,Dependent_count,Education_Level,Marital_Status,Income_Category,Card_Category,Months_on_book,Total_Relationship_Count,Months_Inactive_12_mon,Contacts_Count_12_mon,Credit_Limit,Total_Revolving_Bal,Avg_Open_To_Buy,Total_Amt_Chng_Q4_Q1,Total_Trans_Amt,Total_Trans_Ct,Total_Ct_Chng_Q4_Q1,Avg_Utilization_Ratio'.split(",")
+rows_to_convert_superstore = 'Year_Birth,Education,Marital_Status,Income,Kidhome,Teenhome,Recency,MntWines,MntFruits,MntMeatProducts,MntFishProducts,MntSweetProducts,MntGoldProds,NumDealsPurchases,NumWebPurchases,NumCatalogPurchases,NumStorePurchases,NumWebVisitsMonth,Complain,MonthsCustomer'.split(",")
 
 if 'generated_df' not in st.session_state:
     st.session_state.generated_df = None
@@ -59,7 +59,6 @@ if 'vdb_superstore' not in st.session_state:
     vdb_superstore = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings,
                  collection_metadata={"hnsw:space": "cosine"})
     st.session_state.vdb_superstore = vdb_superstore
-    st.write(f"Original dataset size: {vdb_superstore._collection.count()}")
 
 
 # if "spark" not in st.session_state:
@@ -70,9 +69,7 @@ def get_superstore_retrieved_df(retriever, val_df, spark):
     relevant_rows = []
 
     for i in range(0, len(input_rows)):
-        print(input_rows[i])
         for relevant_row in retriever.get_relevant_documents(input_rows[i]):
-            print(relevant_row.metadata)
             relevant_rows.append(
                 relevant_row.page_content + f"; Id: {relevant_row.metadata['Id']}")
 
@@ -103,12 +100,14 @@ def generate_look_alike_superstore(uploaded_file, k):
     return generated_df
 
 
-def superstore_generate_form():
-    succeeded = False
+def display_input_data():
     st.markdown("""**Superstore Data**""")
-    superstore_data = pd.read_csv("src/resources/data/superstore.csv")
+    superstore_data = pd.read_csv("src/resources/data/superstore_master.csv")
     st.write(superstore_data)
     st.markdown("""---""")
+
+def superstore_generate_form():
+    display_input_data()
     st.markdown("""**Input Data**""")
     with st.form('fileform'):
         uploaded_file = st.file_uploader("Upload customer data", type=st.session_state.supported_file_formats)
@@ -122,7 +121,7 @@ def superstore_generate_form():
                         with st.spinner('Generating...'):
                             generated_df = generate_look_alike_superstore(uploaded_file, k)
                             st.write("Generated look-alike audiences.")
-                            st.write(generated_df)
+                            st.write(generated_df.drop("Response"))
                         st.session_state.generated_df = generated_df
                     except AttributeError as e:
                         # Handling the AttributeError

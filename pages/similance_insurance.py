@@ -67,17 +67,12 @@ if 'vdb_insurance' not in st.session_state:
     st.write(f"Original dataset size: {vdb_insurance._collection.count()}")
 
 
-# if "spark" not in st.session_state:
-#     st.session_state.spark = SparkSession.builder.appName("customer_look_alike_modelling").getOrCreate()
-
 def get_insurance_retrieved_df(retriever, val_df, spark):
     input_rows = val_df.rdd.map(lambda x: x.row_as_text).collect()
     relevant_rows = []
 
     for i in range(0, len(input_rows)):
-        print(input_rows[i])
         for relevant_row in retriever.get_relevant_documents(input_rows[i]):
-            print(relevant_row.metadata)
             relevant_rows.append(
                 relevant_row.page_content + f"; Id: {relevant_row.metadata['Id']}; charges_bucket_label: {relevant_row.metadata['charges_bucket_label']}")
 
