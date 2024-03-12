@@ -101,7 +101,7 @@ def generate_look_alike_movie(uploaded_file, k):
 def movie_generate_form():
     succeeded = False
     st.markdown("""**Movie Data**""")
-    movie_data = pd.read_csv("src/resources/data/movie.csv").drop('Target', axis=1)
+    movie_data = pd.read_csv("src/resources/data/movie_master.csv")
     st.write(movie_data)
     st.markdown("""---""")
     st.markdown("""**Input Data**""")
