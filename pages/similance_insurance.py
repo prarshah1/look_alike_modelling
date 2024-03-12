@@ -34,8 +34,8 @@ with title_container:
 
 with st.container(border=True):
     st.markdown("""  
-    ## :blue[Insurance budgeting]  
-    **Goal:** To budget for Insurance claims or Premiums 
+    ## :blue[Insurance Premiums Prediction]  
+    **Goal:** To predict for Insurance claims or Premiums 
     
     **Story:** 
     Here's how we can use our customer data to manage insurance claims and premiums: 
@@ -64,7 +64,6 @@ if 'vdb_insurance' not in st.session_state:
     vdb_insurance = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings,
                  collection_metadata={"hnsw:space": "cosine"})
     st.session_state.vdb_insurance = vdb_insurance
-    st.write(f"Original dataset size: {vdb_insurance._collection.count()}")
 
 
 def get_insurance_retrieved_df(retriever, val_df, spark):

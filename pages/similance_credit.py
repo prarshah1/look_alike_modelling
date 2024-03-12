@@ -60,7 +60,6 @@ if 'vdb_credit' not in st.session_state:
     vdb_credit = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings,
                  collection_metadata={"hnsw:space": "cosine"})
     st.session_state.vdb_credit = vdb_credit
-    st.write(f"Original dataset size: {vdb_credit._collection.count()}")
 
 
 # if "spark" not in st.session_state:

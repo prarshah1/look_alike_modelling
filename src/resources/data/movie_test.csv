@@ -1,21 +1,21 @@
-Age,FrequentWatcher,AnnualIncomeClass,ServicesOpted,AccountSyncedToSocialMedia,BookedFoodOrNot,Id
-34,Yes,Low Income,5,Yes,No,1
-27,Yes,High Income,1,No,Yes,5
-34,No,Low Income,2,Yes,No,7
-36,Yes,High Income,1,No,No,9
-28,No,Middle Income,2,No,No,11
-37,No,Low Income,2,Yes,No,19
-31,Yes,High Income,1,No,No,21
-35,Yes,High Income,1,No,No,33
-37,Yes,Low Income,1,Yes,No,37
-37,Yes,High Income,6,No,Yes,45
-34,No,Middle Income,6,No,Yes,0
-37,No,Middle Income,3,Yes,No,2
-30,No,Middle Income,2,No,No,3
-30,No,Low Income,1,No,No,4
-34,No,Middle Income,4,Yes,Yes,6
-30,No,Low Income,3,No,Yes,8
-34,No,Low Income,1,Yes,Yes,10
-35,No Record,Middle Income,1,Yes,Yes,12
-34,Yes,Low Income,4,No,No,13
-34,No,Middle Income,5,No,No,14
+Age,FrequentWatcher,AnnualIncomeClass,AccountSyncedToSocialMedia,BookedFoodOrNot,Id,ServicesOpted
+34,Yes,Low Income,Yes,No,1,7
+27,Yes,High Income,No,Yes,5,3
+34,No,Low Income,Yes,No,7,4
+36,Yes,High Income,No,No,9,3
+28,No,Middle Income,No,No,11,4
+37,No,Low Income,Yes,No,19,4
+31,Yes,High Income,No,No,21,3
+35,Yes,High Income,No,No,33,3
+37,Yes,Low Income,Yes,No,37,3
+37,Yes,High Income,No,Yes,45,8
+34,No,Middle Income,No,Yes,0,8
+37,No,Middle Income,Yes,No,2,5
+30,No,Middle Income,No,No,3,4
+30,No,Low Income,No,No,4,3
+34,No,Middle Income,Yes,Yes,6,6
+30,No,Low Income,No,Yes,8,5
+34,No,Low Income,Yes,Yes,10,3
+35,No Record,Middle Income,Yes,Yes,12,3
+34,Yes,Low Income,No,No,13,6
+34,No,Middle Income,No,No,14,7
