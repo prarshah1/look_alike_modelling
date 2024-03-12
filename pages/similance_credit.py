@@ -104,7 +104,7 @@ def generate_look_alike_credit(uploaded_file, k):
 def credit_generate_form():
     succeeded = False
     st.markdown("""**Credit Card Churn Data**""")
-    credit_data = pd.read_csv("src/resources/data/credit_card.csv")
+    credit_data = pd.read_csv("src/resources/data/credit_master.csv")
     st.write(credit_data)
     st.markdown("""---""")
     st.markdown("""**Input Data**""")
