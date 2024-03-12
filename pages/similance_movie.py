@@ -3,6 +3,8 @@ import pandas as pd
 import sqlite3
 from io import StringIO
 from pyspark.sql import SparkSession
+from pyspark.sql import functions as F
+
 from streamlit_extras.switch_page_button import switch_page
 
 __import__('pysqlite3')
@@ -67,12 +69,14 @@ def get_movie_retrieved_df(retriever, val_df, spark):
     relevant_rows = []
 
     for i in range(0, len(input_rows)):
+        target = []
         for relevant_row in retriever.get_relevant_documents(input_rows[i]):
-            relevant_rows.append(
-                relevant_row.page_content + f"; Id: {relevant_row.metadata['Id']}; Target: {relevant_row.metadata['Target']}")
+            target.append(relevant_row.metadata['Target'])
+        relevant_rows.append(
+            input_rows[i] + f"; Target: {max(target)}")
 
     converted_rows = [dict(pair.split(": ") for pair in row.split("; ")) for row in relevant_rows]
-    generated_df = spark.createDataFrame(converted_rows).distinct()
+    generated_df = spark.createDataFrame(converted_rows).distinct()#.filter(F.col("Target") == "1")
     # return input_df.join(generated_df, how="inner", on=["infogroup_id", "mapped_contact_id_cont"])
     return generated_df
 
@@ -95,6 +99,8 @@ def generate_look_alike_movie(uploaded_file, k):
     retriever = st.session_state.vdb_movie.as_retriever(search_kwargs={"k": int(k)})
     generated_df = get_movie_retrieved_df(retriever, test_df, spark).drop("Target")
     generated_df.show()
+    st.write("Generated look-alike audiences.")
+    st.write(generated_df)
     return generated_df
 
 
@@ -116,8 +122,6 @@ def movie_generate_form():
                     try:
                         with st.spinner('Generating...'):
                             generated_df = generate_look_alike_movie(uploaded_file, k)
-                            st.write("Generated look-alike audiences.")
-                            st.write(generated_df)
                         st.session_state.generated_df = generated_df
                     except AttributeError as e:
                         # Handling the AttributeError

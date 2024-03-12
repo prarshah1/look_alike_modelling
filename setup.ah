@@ -1,6 +1,0 @@
-# pip install -r requirements.txt
-
-streamlit run landing_page.py --server.port 8561  --logger.level=debug &
-streamlit run app_test.py --server.port 8503  --logger.level=debug &
-
-
