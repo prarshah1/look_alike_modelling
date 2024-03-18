@@ -60,10 +60,6 @@ if 'vdb_superstore' not in st.session_state:
                  collection_metadata={"hnsw:space": "cosine"})
     st.session_state.vdb_superstore = vdb_superstore
 
-
-# if "spark" not in st.session_state:
-#     st.session_state.spark = SparkSession.builder.appName("customer_look_alike_modelling").getOrCreate()
-
 def get_superstore_retrieved_df(retriever, val_df, spark):
     input_rows = val_df.rdd.map(lambda x: x.row_as_text).collect()
     relevant_rows = []

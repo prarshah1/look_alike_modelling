@@ -61,10 +61,6 @@ if 'vdb_credit' not in st.session_state:
                  collection_metadata={"hnsw:space": "cosine"})
     st.session_state.vdb_credit = vdb_credit
 
-
-# if "spark" not in st.session_state:
-#     st.session_state.spark = SparkSession.builder.appName("customer_look_alike_modelling").getOrCreate()
-
 def get_credit_retrieved_df(retriever, val_df, spark):
     input_rows = val_df.rdd.map(lambda x: x.row_as_text).collect()
     relevant_rows = []
