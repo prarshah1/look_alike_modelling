@@ -44,7 +44,8 @@ with st.container(border=True):
     By leveraging this approach, we aim to make our email campaign more effective, reaching those who are most likely to be interested in what we have to offer and driving sales in the process. 
     """)
 
-rows_to_convert_superstore = 'Year_Birth,Education,Marital_Status,Income,Kidhome,Teenhome,Recency,MntWines,MntFruits,MntMeatProducts,MntFishProducts,MntSweetProducts,MntGoldProds,NumDealsPurchases,NumWebPurchases,NumCatalogPurchases,NumStorePurchases,NumWebVisitsMonth,Complain,MonthsCustomer'.split(",")
+rows_to_convert_superstore = 'Year_Birth,Education,Marital_Status,Income,Kidhome,Teenhome,Recency,MntWines,MntFruits,MntMeatProducts,MntFishProducts,MntSweetProducts,MntGoldProds,NumDealsPurchases,NumWebPurchases,NumCatalogPurchases,NumStorePurchases,NumWebVisitsMonth,Complain,MonthsCustomer'.split(
+    ",")
 
 if 'generated_df' not in st.session_state:
     st.session_state.generated_df = None
@@ -57,8 +58,9 @@ if 'vdb_superstore' not in st.session_state:
     db_dir = "src/resources/embeddings/superstore"
     # client = chromadb.PersistentClient(path=db_dir)
     vdb_superstore = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings,
-                 collection_metadata={"hnsw:space": "cosine"})
+                            collection_metadata={"hnsw:space": "cosine"})
     st.session_state.vdb_superstore = vdb_superstore
+
 
 def get_superstore_retrieved_df(retriever, val_df, spark):
     input_rows = val_df.rdd.map(lambda x: x.row_as_text).collect()
@@ -102,6 +104,7 @@ def display_input_data():
     st.write(superstore_data)
     st.markdown("""---""")
 
+
 def superstore_generate_form():
     display_input_data()
     st.markdown("""**Input Data**""")
@@ -132,5 +135,6 @@ def superstore_generate_form():
                     st.write(f"Supported file types are {', '.join(st.session_state.supported_file_formats)}")
             else:
                 st.write("Please select a file to upload first!")
+
 
 superstore_generate_form()

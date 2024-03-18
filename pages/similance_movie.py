@@ -43,7 +43,8 @@ with st.container(border=True):
     As a bank, we possess data on card usage among our customers. Let's consider that we have 500,000 customers who utilized our card for purchasing movie tickets within the last 30 days. Furthermore, we have collected information on instances where some of these customers also made purchases for additional cinema services such as food or beverages. Additionally, as a bank, we are aware of the number of individuals who have already booked movie tickets for the upcoming week, which stands at approximately 15,000. Among these bookings, there are 1,000 cases where customers have already pre-booked additional services.  
     To enhance customer experience and engagement, the bank aims to offer a special service to those customers who have only purchased movie tickets without any additional services. By analyzing the historical data of the 500,000 customers or potentially a larger dataset, we can identify patterns that indicate which customers are more likely to purchase cinema services based on similarities with those who have already made such purchases for the same day.
     """)
-rows_to_convert_movie = 'Age,FrequentWatcher,AnnualIncomeClass,ServicesOpted,AccountSyncedToSocialMedia,BookedFoodOrNot'.split(",")
+rows_to_convert_movie = 'Age,FrequentWatcher,AnnualIncomeClass,ServicesOpted,AccountSyncedToSocialMedia,BookedFoodOrNot'.split(
+    ",")
 
 if 'generated_df' not in st.session_state:
     st.session_state.generated_df = None
@@ -56,12 +57,9 @@ if 'vdb_movie' not in st.session_state:
     db_dir = "src/resources/embeddings/movie"
     # client = chromadb.PersistentClient(path=db_dir)
     vdb_movie = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings,
-                 collection_metadata={"hnsw:space": "cosine"})
+                       collection_metadata={"hnsw:space": "cosine"})
     st.session_state.vdb_movie = vdb_movie
 
-
-# if "spark" not in st.session_state:
-#     st.session_state.spark = SparkSession.builder.appName("customer_look_alike_modelling").getOrCreate()
 
 def get_movie_retrieved_df(retriever, val_df, spark):
     input_rows = val_df.rdd.map(lambda x: x.row_as_text).collect()
@@ -76,7 +74,7 @@ def get_movie_retrieved_df(retriever, val_df, spark):
             input_rows[i] + f"; Target: {max(target)}")
 
     converted_rows = [dict(pair.split(": ") for pair in row.split("; ")) for row in relevant_rows]
-    generated_df = spark.createDataFrame(converted_rows).distinct()#.filter(F.col("Target") == "1")
+    generated_df = spark.createDataFrame(converted_rows).distinct()  # .filter(F.col("Target") == "1")
     # return input_df.join(generated_df, how="inner", on=["infogroup_id", "mapped_contact_id_cont"])
     generated_df.show()
     st.write("Generated look-alike audiences.")
@@ -136,5 +134,6 @@ def movie_generate_form():
                     st.write(f"Supported file types are {', '.join(st.session_state.supported_file_formats)}")
             else:
                 st.write("Please select a file to upload first!")
+
 
 movie_generate_form()
