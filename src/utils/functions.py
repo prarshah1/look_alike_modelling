@@ -1,8 +1,11 @@
 # functions
+import json
+from datetime import datetime
+
 from sentence_transformers import CrossEncoder
 
-from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.vectorstores import Chroma
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Chroma
 from pyspark.sql import functions as F, SparkSession
 from src.utils.config import config
 
@@ -93,3 +96,52 @@ def print_unique_values_and_counts(input_list):
     for value, count in counter.items():
         print(f"{value}: {count} times")
 
+def save_chart(query):
+    q_s = ' If any charts or graphs or plots were created save them locally.'
+    query += ' . '+ q_s
+    return query
+
+
+def check_plot_query(query):
+    keywords = ['chart', 'charts', 'graph', 'graphs', 'plot', 'plt', 'plots']
+    for keyword in keywords:
+        if keyword in query.lower():
+            return True
+    return False
+def run_query(agent, query_):
+    if check_plot_query(query_.lower()):
+        query_ = save_chart(query_)
+    output = agent(query_)
+    response, intermediate_steps = output['output'], output['intermediate_steps']
+    # thought, action, action_input, observation, steps = decode_intermediate_steps(intermediate_steps)
+    # store_convo(query_, steps, response)
+    return response, intermediate_steps
+
+def decode_intermediate_steps(steps):
+    log, thought_, action_, action_input_, observation_ = [], [], [], [], []
+    text = ''
+    for step in steps:
+        thought_.append(':green[{}]'.format(step[0][2].split('Action:')[0]))
+        action_.append(':green[Action:] {}'.format(step[0][2].split('Action:')[1].split('Action Input:')[0]))
+        action_input_.append(':green[Action Input:] {}'.format(step[0][2].split('Action:')[1].split('Action Input:')[1]))
+        observation_.append(':green[Observation:] {}'.format(step[1]))
+        log.append(step[0][2])
+        text = step[0][2]+' Observation: {}'.format(step[1])
+    return thought_, action_, action_input_, observation_, text
+
+
+def get_convo():
+    convo_file = 'convo_history.json'
+    with open(convo_file, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    return data, convo_file
+
+
+def store_convo(query, response_, response):
+    data, convo_file = get_convo()
+    current_dateTime = datetime.now()
+    data['{}'.format(current_dateTime)] = []
+    data['{}'.format(current_dateTime)].append({'Question': query, 'Answer': response, 'Steps': response_})
+
+    with open(convo_file, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)

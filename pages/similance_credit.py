@@ -1,24 +1,21 @@
-import chromadb
 import pandas as pd
 import sqlite3
 from io import StringIO
 from pyspark.sql import SparkSession
-from streamlit_extras.switch_page_button import switch_page
 
 __import__('pysqlite3')
 import sys
 
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
-connection = sqlite3.connect('cache.db', timeout=100)
+# sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+# connection = sqlite3.connect('cache.db', timeout=100)
 import os
 import sys
 
 os.environ['PYSPARK_PYTHON'] = sys.executable
 os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
 import streamlit as st
-from langchain.vectorstores import Chroma
-from src.utils.functions import get_row_as_text, hf_embeddings, get_ars_retrieved_df, spark
-from src.utils.config import config
+from langchain_community.vectorstores import Chroma
+from src.utils.functions import get_row_as_text, hf_embeddings
 from PIL import Image  # Import the Image class from the PIL module
 
 st.set_page_config(page_title='Similance')
@@ -48,8 +45,8 @@ with st.container(border=True):
 rows_to_convert_credit = 'Customer_Age,Gender,Dependent_count,Education_Level,Marital_Status,Income_Category,Card_Category,Months_on_book,Total_Relationship_Count,Months_Inactive_12_mon,Contacts_Count_12_mon,Credit_Limit,Total_Revolving_Bal,Avg_Open_To_Buy,Total_Amt_Chng_Q4_Q1,Total_Trans_Amt,Total_Trans_Ct,Total_Ct_Chng_Q4_Q1,Avg_Utilization_Ratio'.split(
     ",")
 
-if 'generated_df' not in st.session_state:
-    st.session_state.generated_df = None
+if 'credit_output_df' not in st.session_state:
+    st.session_state.credit_output_df = None
 
 if 'supported_file_formats' not in st.session_state:
     st.session_state.supported_file_formats = ["txt", "json", "csv"]
@@ -118,7 +115,7 @@ def credit_generate_form():
                             generated_df = generate_look_alike_credit(uploaded_file, k)
                             st.write("Generated look-alike audiences.")
                             st.write(generated_df)
-                        st.session_state.generated_df = generated_df
+                        st.session_state.credit_output_df = generated_df
                     except AttributeError as e:
                         # Handling the AttributeError
                         st.write("Please submit the uploaded file.")

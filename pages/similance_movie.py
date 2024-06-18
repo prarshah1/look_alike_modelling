@@ -1,11 +1,7 @@
-import chromadb
 import pandas as pd
 import sqlite3
 from io import StringIO
 from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-
-from streamlit_extras.switch_page_button import switch_page
 
 __import__('pysqlite3')
 import sys
@@ -18,9 +14,8 @@ import sys
 os.environ['PYSPARK_PYTHON'] = sys.executable
 os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
 import streamlit as st
-from langchain.vectorstores import Chroma
-from src.utils.functions import get_row_as_text, hf_embeddings, get_ars_retrieved_df, spark
-from src.utils.config import config
+from langchain_community.vectorstores import Chroma
+from src.utils.functions import get_row_as_text, hf_embeddings
 from PIL import Image  # Import the Image class from the PIL module
 
 st.set_page_config(page_title='Similance')
@@ -46,8 +41,8 @@ with st.container(border=True):
 rows_to_convert_movie = 'Age,FrequentWatcher,AnnualIncomeClass,ServicesOpted,AccountSyncedToSocialMedia,BookedFoodOrNot'.split(
     ",")
 
-if 'generated_df' not in st.session_state:
-    st.session_state.generated_df = None
+if 'movie_output_df' not in st.session_state:
+    st.session_state.movie_output_df = None
 
 if 'supported_file_formats' not in st.session_state:
     st.session_state.supported_file_formats = ["txt", "json", "csv"]
@@ -120,7 +115,7 @@ def movie_generate_form():
                     try:
                         with st.spinner('Generating...'):
                             generated_df = generate_look_alike_movie(uploaded_file, k)
-                        st.session_state.generated_df = generated_df
+                        st.session_state.movie_output_df = generated_df
                     except AttributeError as e:
                         # Handling the AttributeError
                         st.write("Please submit the uploaded file.")

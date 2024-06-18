@@ -11,7 +11,7 @@ sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 connection = sqlite3.connect('cache.db', timeout=100)
 import os
 import streamlit as st
-from langchain.vectorstores import Chroma
+from langchain_community.vectorstores import Chroma
 from src.utils.functions import get_row_as_text, hf_embeddings, get_ars_retrieved_df, spark
 from src.utils.config import config
 from PIL import Image  # Import the Image class from the PIL module

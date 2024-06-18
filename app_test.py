@@ -14,7 +14,7 @@ import sys
 os.environ['PYSPARK_PYTHON'] = sys.executable
 os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
 import streamlit as st
-from langchain.vectorstores import Chroma
+from langchain_community.vectorstores import Chroma
 from src.utils.functions import get_row_as_text, hf_embeddings, get_retrieved_df, spark
 from src.utils.config import config
 from PIL import Image  # Import the Image class from the PIL module

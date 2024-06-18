@@ -67,7 +67,7 @@ with st.container(border=True):
     st.markdown("""  
     ## :blue[CPG Retailers Campaign effectiveness ]  
     **Goal:** To make our Marketing Campaign more effective
-
+    
     **Story:** 
     As a CPG / Retail company we run email campaigns to promote our latest offerings. Looking back at our previous efforts, we saw that some customers bought the product after receiving our emails. Now, as we plan our next campaign, we want to be more targeted in who we reach out to. 
     Sorting through our extensive list of customers, we want to identify patterns among those who made purchases before. We are not just looking at obvious things like age or location but can use this smart solution that can recognize similarities without explicit instructions. It scans through our data and pinpoints potential matches automatically. 
@@ -95,11 +95,6 @@ if 'vdb_superstore' not in st.session_state:
 
 def save_superstore_output():
     st.session_state.superstore_output_df.toPandas().to_csv("src/resources/data/superstore_output.csv", index=False)
-
-
-def read_superstore_output():
-    return pd.read_csv("src/resources/data/superstore_output.csv", header=0)
-
 
 def get_superstore_retrieved_df(retriever, val_df, spark):
     input_rows = val_df.rdd.map(lambda x: x.row_as_text).collect()
@@ -157,13 +152,10 @@ def superstore_generate_form():
                 if uploaded_file.name.split(".")[-1] in st.session_state.supported_file_formats:
                     try:
                         with st.spinner('Generating...'):
-                            try:
-                                generated_df = generate_look_alike_superstore(uploaded_file, k)
-                            except:
-                                generated_df = read_superstore_output()
-                        st.write("Generated look-alike audiences.")
+                            generated_df = generate_look_alike_superstore(uploaded_file, k)
+                            st.write("Generated look-alike audiences.")
+                            st.write(generated_df.drop("Response"))
                         st.session_state.superstore_output_df = generated_df
-                        st.write(st.session_state.superstore_output_df.drop("Response"))
                         save_superstore_output()
                     except AttributeError as e:
                         # Handling the AttributeError
@@ -200,6 +192,11 @@ def delete_images(image_paths):
     # print(f"{not_found_count} image(s) not found.")
 
 
+def read_superstore_output():
+    return pd.read_csv("src/resources/data/superstore_output.csv", header=0)
+
+
+
 def superstore_query_form():
     if st.session_state.superstore_output_df is not None:
         with st.form('queryform'):
@@ -209,27 +206,23 @@ def superstore_query_form():
                                                   return_intermediate_steps=True, save_charts=True, verbose=True)
             query_submitted = st.form_submit_button('Submit query')
             if query_submitted:
-                with st.spinner("Generating ..."):
-                    response = "Agent stopped"
-                    while ("Agent stopped" in response):
-                        response, intermediate_steps = run_query(agent, query)
-                    st.write(response)
-                    # step = re.search(r'Action Input:\s*(.*)', str(intermediate_steps[-1])).group(1).strip()
-                    # st.write(f"Step:\n {step}")
-                    imgs_png = glob.glob('*.png')
-                    imgs_jpg = glob.glob('*.jpg')
-                    imgs_jpeeg = glob.glob('*.jpeg')
-                    imgs_ = imgs_png + imgs_jpg + imgs_jpeeg
-                    if len(imgs_) > 0:
-                        for img in imgs_:
-                            st.image(img)
-                    delete_images(imgs_)
+                response = "Agent stopped"
+                while("Agent stopped" in response):
+                    response, intermediate_steps = run_query(agent, query)
+                st.write(response)
+                # step = re.search(r'Action Input:\s*(.*)', str(intermediate_steps[-1])).group(1).strip()
+                # st.write(f"Step:\n {step}")
+                imgs_png = glob.glob('*.png')
+                imgs_jpg = glob.glob('*.jpg')
+                imgs_jpeeg = glob.glob('*.jpeg')
+                imgs_ = imgs_png + imgs_jpg + imgs_jpeeg
+                if len(imgs_) > 0:
+                    for img in imgs_:
+                        st.image(img)
+                delete_images(imgs_)
 
 
 superstore_query_form()
 
 # How many total complain have we received?
-# Plot income distribution
-# How many married individuals are there?
-# Who was a customer for maximum months? whats that in years?
-# whats the maximum numer of years an individual has been a customer?
+# Plot graph of Marital_Status with respect to Complain

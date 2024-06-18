@@ -1,9 +1,6 @@
-import chromadb
 import pandas as pd
 import sqlite3
-from io import StringIO
 from pyspark.sql import SparkSession
-from streamlit_extras.switch_page_button import switch_page
 
 __import__('pysqlite3')
 import sys
@@ -16,9 +13,8 @@ import sys
 os.environ['PYSPARK_PYTHON'] = sys.executable
 os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
 import streamlit as st
-from langchain.vectorstores import Chroma
-from src.utils.functions import get_row_as_text, hf_embeddings, get_ars_retrieved_df, spark
-from src.utils.config import config
+from langchain_community.vectorstores import Chroma
+from src.utils.functions import get_row_as_text, hf_embeddings
 from PIL import Image  # Import the Image class from the PIL module
 
 st.set_page_config(page_title='Similance')
@@ -51,8 +47,8 @@ with st.container(border=True):
     """)
 rows_to_convert_insurance = 'age,sex,bmi,children,smoker,region'.split(",")
 
-if 'generated_df' not in st.session_state:
-    st.session_state.generated_df = None
+if 'insurance_output_df' not in st.session_state:
+    st.session_state.insurance_output_df = None
 
 if 'supported_file_formats' not in st.session_state:
     st.session_state.supported_file_formats = ["txt", "json", "csv"]
@@ -121,7 +117,7 @@ def insurance_generate_form():
                     generated_df = generate_look_alike_insurance(uploaded_df, k)
                     st.write("Generated look-alike audiences.")
                     st.write(generated_df)
-                st.session_state.generated_df = generated_df
+                st.session_state.insurance_output_df = generated_df
             except AttributeError as e:
                 # Handling the AttributeError
                 st.write("Please submit the uploaded file.")
