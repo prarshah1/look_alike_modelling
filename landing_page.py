@@ -35,7 +35,7 @@ images = {
 }
 
 # Center align the title
-st.markdown("<h1 style='text-align: center;'>Demo Stories</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>Similance</h1>", unsafe_allow_html=True)
 
 # Function to display images with detailed descriptions on separate page
 def display_image_details(image_name, chosen_tab):
