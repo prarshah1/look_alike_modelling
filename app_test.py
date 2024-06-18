@@ -28,7 +28,7 @@ with title_container:
     with col1:
         st.image(image, width=100)
     with col2:
-        st.title("Similence")
+        st.title("Similance")
 
 if 'generated_df' not in st.session_state:
     st.session_state.generated_df = None
