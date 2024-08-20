@@ -15,7 +15,8 @@ Each demo has 3 data files, for each demo name <demo>
 To un streamlit app locally:
 1. Populate streamlet's secrets.toml with OPENAI_API_KEY.
 2. Install requirements from requirements.txt
-3. Run following from project dir:
+3. Run the following from project dir:
    ```
    streamlit run landing_page.py
    ```
+4. The other pages used are in [pages/](pages/) directory.
