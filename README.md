@@ -1,7 +1,7 @@
 # lookalike_model
 lookalike model for finding audience similar to seed audience
 
-Link to Streamlit UI: [Similance Demos](https://similance-demos.streamlit.app/similance_insurance)
+Link to Streamlit UI: [Similance Demos](https://similance-demos.streamlit.app/)
 
 When asked to upload test data, you can find data here:
 [src/resources/data/](src/resources/data/)
