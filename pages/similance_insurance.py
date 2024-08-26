@@ -59,19 +59,51 @@ if 'vdb_insurance' not in st.session_state:
     # client = chromadb.PersistentClient(path=db_dir)
     vdb_insurance = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings,
                  collection_metadata={"hnsw:space": "cosine"})
+    # print("Embeddings", vdb_insurance.get())
+    # print("Collections :", vdb_insurance._collection)
+    # print("Collections :", vdb_insurance._collection.count())
+    # print("doc", dir(vdb_insurance._collection))
     st.session_state.vdb_insurance = vdb_insurance
 
+# collections = vdb_insurance._collection
+# for collection in collections:
+#     print(collection.name)
+# print(dir(vdb_insurance))
+
+# Function to check if embeddings are present
+def check_embeddings_present(vdb):
+    # Try to count the number of documents in the collection
+    collection = vdb._collection
+    # print(collection)
+    num_documents = collection.count()
+    print(num_documents)
+    
+    if num_documents > 0:
+        return True, num_documents
+    else:
+        return False, 0
+
+# Check embeddings in the collection
+embeddings_present, num_documents = check_embeddings_present(st.session_state.vdb_insurance)
+
+if embeddings_present:
+    print(f"Embeddings are present in the collection. Number of documents: {num_documents}")
+else:
+    print("No embeddings found in the collection.")
 
 def get_insurance_retrieved_df(retriever, val_df, spark):
     input_rows = val_df.rdd.map(lambda x: x.row_as_text).collect()
+    # print("input rows:", input_rows)
     relevant_rows = []
 
+    # print(dir(retriever))
     for i in range(0, len(input_rows)):
         for relevant_row in retriever.get_relevant_documents(input_rows[i]):
             relevant_rows.append(
                 relevant_row.page_content + f"; Id: {relevant_row.metadata['Id']}; charges_bucket_label: {relevant_row.metadata['charges_bucket_label']}")
-
+    # print("relevant rows : ",relevant_rows)
     converted_rows = [dict(pair.split(": ") for pair in row.split("; ")) for row in relevant_rows]
+    # print("converted rows: ", converted_rows)
     generated_df = spark.createDataFrame(converted_rows).distinct()
     # return input_df.join(generated_df, how="inner", on=["infogroup_id", "mapped_contact_id_cont"])
     return generated_df
@@ -85,6 +117,7 @@ def generate_look_alike_insurance(pandas_df, k):
 
     test_df = get_row_as_text(input_df, rows_to_convert_insurance)
     retriever = st.session_state.vdb_insurance.as_retriever(search_kwargs={"k": int(k)})
+    # print("retriever", retriever)
     generated_df = get_insurance_retrieved_df(retriever, test_df, spark)
     generated_df.show()
     return generated_df
@@ -105,7 +138,7 @@ def insurance_generate_form():
         children = st.number_input('Children:')
         smoker = st.selectbox('Smoker:', ['yes', 'no'])
         region = st.selectbox('Region:', ["northeast", "northwest", "southeast", "southwest"])
-        k = st.number_input('Number of rows required:', placeholder='Enter number odf rows to fetch per query:',
+        k = st.number_input('Number of rows required:', placeholder='Enter number of rows to fetch per query:',
                             value=20)
         submitted = st.form_submit_button('Generate', disabled=(k == ""))
         if submitted:

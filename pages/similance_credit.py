@@ -57,11 +57,14 @@ if 'vdb_credit' not in st.session_state:
     # client = chromadb.PersistentClient(path=db_dir)
     vdb_credit = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings,
                         collection_metadata={"hnsw:space": "cosine"})
+    # print("Embeddings", vdb_credit.get())
+    # print("Count is", vdb_credit._collection.count())
     st.session_state.vdb_credit = vdb_credit
 
 
 def get_credit_retrieved_df(retriever, val_df, spark):
     input_rows = val_df.rdd.map(lambda x: x.row_as_text).collect()
+    # print("input: ",input_rows)
     relevant_rows = []
 
     for i in range(0, len(input_rows)):
