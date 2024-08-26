@@ -1,5 +1,5 @@
 .idea/*
-src/resources/ars_embeddings
-src/resources/embeddings
+#src/resources/ars_embeddings
+#src/resources/embeddings
 .streamlit/secrets.toml
 __pycache__/
