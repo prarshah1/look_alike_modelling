@@ -6,10 +6,10 @@ from datetime import datetime
 import pandas as pd
 import sqlite3
 from io import StringIO
-from langchain_openai import ChatOpenAI, OpenAI
+# from langchain_openai import ChatOpenAI, OpenAI
 from pyspark.sql import SparkSession
-from langchain_experimental.agents import create_pandas_dataframe_agent
-from streamlit_image_select import image_select
+# from langchain_experimental.agents import create_pandas_dataframe_agent
+# from streamlit_image_select import image_select
 
 
 def save_chart(query):
@@ -45,7 +45,7 @@ import streamlit as st
 
 os.environ['PYSPARK_PYTHON'] = sys.executable
 os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
-os.environ['OPENAI_API_KEY'] = st.secrets["OPENAI_API_KEY"]
+# os.environ['OPENAI_API_KEY'] = st.secrets["OPENAI_API_KEY"]
 
 import streamlit as st
 from langchain_community.vectorstores import Chroma
@@ -200,33 +200,33 @@ def delete_images(image_paths):
     # print(f"{not_found_count} image(s) not found.")
 
 
-def superstore_query_form():
-    if st.session_state.superstore_output_df is not None:
-        with st.form('queryform'):
-            input_df = read_superstore_output()
-            query = st.text_input(label="Query generated results", placeholder="Write your query here")  # add value
-            agent = create_pandas_dataframe_agent(OpenAI(temperature=0), input_df,
-                                                  return_intermediate_steps=True, save_charts=True, verbose=True)
-            query_submitted = st.form_submit_button('Submit query')
-            if query_submitted:
-                with st.spinner("Generating ..."):
-                    response = "Agent stopped"
-                    while ("Agent stopped" in response):
-                        response, intermediate_steps = run_query(agent, query)
-                    st.write(response)
-                    # step = re.search(r'Action Input:\s*(.*)', str(intermediate_steps[-1])).group(1).strip()
-                    # st.write(f"Step:\n {step}")
-                    imgs_png = glob.glob('*.png')
-                    imgs_jpg = glob.glob('*.jpg')
-                    imgs_jpeeg = glob.glob('*.jpeg')
-                    imgs_ = imgs_png + imgs_jpg + imgs_jpeeg
-                    if len(imgs_) > 0:
-                        for img in imgs_:
-                            st.image(img)
-                    delete_images(imgs_)
+# def superstore_query_form():
+#     if st.session_state.superstore_output_df is not None:
+#         with st.form('queryform'):
+#             input_df = read_superstore_output()
+#             query = st.text_input(label="Query generated results", placeholder="Write your query here")  # add value
+#             agent = create_pandas_dataframe_agent(OpenAI(temperature=0), input_df,
+#                                                   return_intermediate_steps=True, save_charts=True, verbose=True)
+#             query_submitted = st.form_submit_button('Submit query')
+#             if query_submitted:
+#                 with st.spinner("Generating ..."):
+#                     response = "Agent stopped"
+#                     while ("Agent stopped" in response):
+#                         response, intermediate_steps = run_query(agent, query)
+#                     st.write(response)
+#                     # step = re.search(r'Action Input:\s*(.*)', str(intermediate_steps[-1])).group(1).strip()
+#                     # st.write(f"Step:\n {step}")
+#                     imgs_png = glob.glob('*.png')
+#                     imgs_jpg = glob.glob('*.jpg')
+#                     imgs_jpeeg = glob.glob('*.jpeg')
+#                     imgs_ = imgs_png + imgs_jpg + imgs_jpeeg
+#                     if len(imgs_) > 0:
+#                         for img in imgs_:
+#                             st.image(img)
+#                     delete_images(imgs_)
 
 
-superstore_query_form()
+# superstore_query_form()
 
 # How many total complain have we received?
 # Plot income distribution
