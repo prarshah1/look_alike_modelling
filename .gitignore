@@ -1,3 +1,4 @@
 .idea/*
 src/resources/ars_embeddings
 src/resources/embeddings
+__pycache__
