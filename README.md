@@ -64,3 +64,24 @@ Each demo has 3 data files, for each demo name <demo>
    streamlit run landing_page.py --server.fileWatcherType="None"
    ```
 5. The other pages used are in [pages/](pages/) directory.
+
+## Note: If you encounter any error regarding Microsoft C++ Build Tools, follow the below steps:
+1. Download and Install:
+   
+   - Go to the [Microsoft Visual C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) page
+   
+   - Download and run the installer.
+
+2. During Installation:
+   
+   - Select the "Desktop development with C++" workload.
+
+   - Ensure that "MSVC v142 - VS 2019 C++ x64/x86 build tools" or newer is selected.
+
+   - Ensure "Windows 10 SDK" and "C++ CMake tools for Windows" are also selected.
+
+   - Click "Install" and follow the prompts.
+
+3. Restart Your Computer:
+   
+   - After installation, restart your computer to ensure all changes take effect.
